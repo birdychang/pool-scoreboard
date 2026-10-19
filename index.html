@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0b2e23"/>
-<title>撞球計分板 · Race to X</title>
+<title>Pool Scoreboard · Race to X</title>
 <style>
 :root{
   --felt:#0e3a2b; --felt2:#08231a; --gold:#e8c15a; --red:#ff5a5f;
@@ -14,7 +14,7 @@
 html,body{margin:0;min-height:100%}
 body{
   background:radial-gradient(130% 110% at 50% 0%,#155843 0%,var(--felt) 48%,var(--felt2) 100%);
-  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Heiti TC","Microsoft JhengHei",sans-serif;
+  color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   touch-action:manipulation;user-select:none;-webkit-user-select:none;
 }
 button{font-family:inherit;touch-action:manipulation;cursor:pointer}
@@ -30,12 +30,16 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
   width:100%;font-size:20px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
   background:var(--card);color:var(--ink);outline:none;
 }
-.seg{display:flex;gap:8px;flex-wrap:wrap}
-.seg button{
-  flex:1;min-width:60px;padding:12px 0;font-size:18px;border-radius:12px;border:1px solid var(--line);
+.stepper{display:flex;gap:8px;align-items:stretch}
+.stepper button{
+  flex:1;padding:12px 0;font-size:26px;font-weight:700;border-radius:12px;border:1px solid var(--line);
   background:var(--card);color:var(--ink);
 }
-.seg button.on{background:var(--gold);color:#20301f;border-color:var(--gold);font-weight:700}
+.stepper button:active{background:rgba(255,255,255,.12)}
+#raceVal{
+  flex:1;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;
+  color:var(--gold);background:var(--card);border:1px solid var(--line);border-radius:12px;min-width:90px;
+}
 .radio-row{display:flex;gap:8px}
 .radio-row button{
   flex:1;padding:12px 0;font-size:16px;border-radius:12px;border:1px solid var(--line);
@@ -73,7 +77,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 .badge.need{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:400}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .addbtn{
-  margin-top:10px;width:100%;max-width:280px;padding:16px 0;font-size:20px;font-weight:800;letter-spacing:2px;
+  margin-top:10px;width:100%;max-width:280px;padding:16px 0;font-size:20px;font-weight:800;letter-spacing:1px;
   border:none;border-radius:14px;background:var(--gold);color:#20301f;
 }
 .addbtn:active{transform:scale(.97)}
@@ -101,90 +105,91 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 </head>
 <body>
 
-<!-- ============ 設定畫面 ============ -->
+<!-- ============ setup ============ -->
 <div id="setup">
-  <h1>🎱 撞球計分板</h1>
-  <p class="sub">Race to X · 存在這台裝置的瀏覽器裡，斷網也能用</p>
+  <h1>🎱 Pool Scoreboard</h1>
+  <p class="sub">Race to X · saved in this device's browser, works offline</p>
 
   <div class="field">
-    <label>選手一</label>
-    <input type="text" id="inP1" value="選手一" maxlength="12"/>
+    <label>PLAYER 1</label>
+    <input type="text" id="inP1" value="Player 1" maxlength="12"/>
   </div>
   <div class="field">
-    <label>選手二</label>
-    <input type="text" id="inP2" value="選手二" maxlength="12"/>
+    <label>PLAYER 2</label>
+    <input type="text" id="inP2" value="Player 2" maxlength="12"/>
   </div>
   <div class="field">
-    <label>RACE TO（先到幾盤贏）</label>
-    <div class="seg" id="raceSeg">
-      <button data-v="3">3</button><button data-v="5" class="on">5</button><button data-v="7">7</button>
-      <button data-v="9">9</button><button data-v="11">11</button><button data-v="13">13</button>
+    <label>RACE TO (FIRST TO THIS MANY RACKS WINS)</label>
+    <div class="stepper">
+      <button id="raceMinus">−</button>
+      <div id="raceVal">5</div>
+      <button id="racePlus">+</button>
     </div>
   </div>
   <div class="field">
-    <label>開球規則</label>
+    <label>BREAK RULE</label>
     <div class="radio-row" id="breakRuleSeg">
-      <button data-v="alt" class="on">交替開球</button>
-      <button data-v="winner">贏家開球</button>
+      <button data-v="alt" class="on">Alternate break</button>
+      <button data-v="winner">Winner breaks</button>
     </div>
   </div>
   <div class="field">
-    <label>第一盤開球</label>
+    <label>FIRST BREAK</label>
     <div class="radio-row" id="firstBreakSeg">
-      <button data-v="p1" class="on">選手一</button>
-      <button data-v="p2">選手二</button>
+      <button data-v="p1" class="on">Player 1</button>
+      <button data-v="p2">Player 2</button>
     </div>
   </div>
 
-  <button id="startBtn">開始比賽</button>
+  <button id="startBtn">Start Match</button>
   <button id="continueBtn" class="hidden"></button>
 </div>
 
-<!-- ============ 計分畫面 ============ -->
+<!-- ============ game ============ -->
 <div id="game" class="hidden">
   <div class="topbar">
-    <button class="iconbtn" id="btnHome">‹ 設定</button>
+    <button class="iconbtn" id="btnHome">‹ Setup</button>
     <div class="mid">
       <div id="raceLbl">RACE TO 5</div>
-      <div id="rackLbl">第 1 盤 · ⏱ 00:00</div>
+      <div id="rackLbl">Rack 1 · ⏱ 00:00</div>
     </div>
-    <button class="iconbtn" id="btnSwap">⇄ 換邊</button>
+    <button class="iconbtn" id="btnSwap">⇄ Swap</button>
   </div>
 
   <div class="panels">
     <div class="panel" id="panel1">
-      <div class="pname" id="name1">選手一</div>
+      <div class="pname" id="name1">Player 1</div>
       <div class="pscore" id="score1">0</div>
       <div class="badges" id="badges1"></div>
-      <button class="addbtn" id="add1">＋1 拿下此盤</button>
+      <button class="addbtn" id="add1">+1 Rack won</button>
     </div>
     <div class="panel" id="panel2">
-      <div class="pname" id="name2">選手二</div>
+      <div class="pname" id="name2">Player 2</div>
       <div class="pscore" id="score2">0</div>
       <div class="badges" id="badges2"></div>
-      <button class="addbtn" id="add2">＋1 拿下此盤</button>
+      <button class="addbtn" id="add2">+1 Rack won</button>
     </div>
   </div>
 
   <div id="seqStrip"></div>
 
   <div class="toolbar">
-    <button id="btnUndo">↩ 復原上一步</button>
-    <button id="btnReset">🔄 比分歸零</button>
-    <button id="btnNew">🏁 新比賽</button>
+    <button id="btnUndo">↩ Undo</button>
+    <button id="btnReset">🔄 Reset</button>
+    <button id="btnNew">🏁 New match</button>
   </div>
 </div>
 
-<!-- ============ 勝利畫面 ============ -->
+<!-- ============ win overlay ============ -->
 <div id="winOverlay" class="hidden">
   <div class="card">
     <div class="trophy">🏆</div>
-    <h2 id="winName">選手一 獲勝！</h2>
+    <h2 id="winName">Player 1 wins!</h2>
     <div class="final" id="winScore"></div>
     <div class="wtime" id="winTime"></div>
-    <button class="primary" id="btnRematch">再來一場（比分歸零）</button>
-    <button id="btnWinUndo">↩ 剛剛按錯了，復原</button>
-    <button id="btnWinNew">回主畫面開新比賽</button>
+    <button class="primary" id="btnRematch">Rematch (reset scores)</button>
+    <button id="btnWinUndo">↩ Mis-tap — undo last rack</button>
+    <button id="btnWinNew">New match (back to setup)</button>
   </div>
 </div>
 
@@ -192,10 +197,10 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 "use strict";
 const $ = id => document.getElementById(id);
 const LS_KEY = "poolScoreboardV1";
-let S = null;      // 目前比賽狀態
+let S = null;
 let timerId = null;
 
-/* ---------- 小工具 ---------- */
+/* ---------- helpers ---------- */
 function segInit(elId, cb){
   const el = $(elId);
   el.addEventListener("click", e => {
@@ -214,36 +219,37 @@ function fmtTime(ms){
 }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
 function loadSaved(){ try{ const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
-function clearSaved(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
 
-/* ---------- 設定畫面 ---------- */
+/* ---------- setup ---------- */
 let raceTo = 5, breakRule = "alt", firstBreak = "p1";
-segInit("raceSeg", v => raceTo = parseInt(v,10));
+function renderRaceVal(){ $("raceVal").textContent = raceTo; }
+$("raceMinus").onclick = () => { raceTo = Math.max(1, raceTo - 1); renderRaceVal(); };
+$("racePlus").onclick = () => { raceTo = Math.min(25, raceTo + 1); renderRaceVal(); };
+renderRaceVal();
 segInit("breakRuleSeg", v => breakRule = v);
 segInit("firstBreakSeg", v => firstBreak = v);
 
-// 繼續上次比賽
+// resume last match
 (function(){
   const sv = loadSaved();
   if(sv && !sv.done){
     const b = $("continueBtn");
     b.classList.remove("hidden");
-    b.textContent = `繼續上次比賽：${sv.n1} ${sv.s1} – ${sv.s2} ${sv.n2}（Race to ${sv.raceTo}）`;
+    b.textContent = `Resume: ${sv.n1} ${sv.s1}–${sv.s2} ${sv.n2} (Race to ${sv.raceTo})`;
     b.onclick = () => { S = sv; raceTo = sv.raceTo; breakRule = sv.breakRule; showGame(); };
   }
 })();
 
 $("startBtn").onclick = () => {
-  const n1 = $("inP1").value.trim() || "選手一";
-  const n2 = $("inP2").value.trim() || "選手二";
+  const n1 = $("inP1").value.trim() || "Player 1";
+  const n2 = $("inP2").value.trim() || "Player 2";
   S = { n1, n2, raceTo, breakRule, firstBreak,
         s1:0, s2:0, breaker:firstBreak, rack:1,
         seq:[], hist:[], t0:Date.now(), done:false };
-  // 開球選擇器的標籤跟著名字
   save(); showGame();
 };
 
-/* ---------- 計分邏輯 ---------- */
+/* ---------- scoring ---------- */
 function snap(){ return { s1:S.s1, s2:S.s2, breaker:S.breaker, rack:S.rack, seq:S.seq.slice() }; }
 
 function score(side){  // side: "p1" | "p2"
@@ -270,7 +276,7 @@ function undo(){
 }
 
 function resetRacks(){
-  if(!confirm("比分歸零、重新開始這場比賽？")) return;
+  if(!confirm("Reset scores and restart this match?")) return;
   S.s1 = 0; S.s2 = 0; S.rack = 1; S.breaker = S.firstBreak;
   S.seq = []; S.hist = []; S.t0 = Date.now(); S.done = false;
   $("winOverlay").classList.add("hidden");
@@ -283,11 +289,11 @@ function swapSides(){
   S.breaker = S.breaker === "p1" ? "p2" : "p1";
   S.firstBreak = S.firstBreak === "p1" ? "p2" : "p1";
   S.seq = S.seq.map(x => x === 1 ? 2 : 1);
-  S.hist = []; // 換邊後歷史作廢，避免復原錯亂
+  S.hist = []; // history cleared after swap to keep undo consistent
   save(); render();
 }
 
-/* ---------- 畫面 ---------- */
+/* ---------- rendering ---------- */
 function showGame(){
   $("setup").classList.add("hidden");
   $("game").classList.remove("hidden");
@@ -301,21 +307,20 @@ function showSetup(){
   clearInterval(timerId);
   $("game").classList.add("hidden");
   $("setup").classList.remove("hidden");
-  location.reload(); // 回設定頁最乾淨，順便重整「繼續上次」按鈕
+  location.reload();
 }
 
 function renderClock(){
   if(!S) return;
-  $("rackLbl").textContent = `第 ${S.rack} 盤 · ⏱ ${fmtTime(Date.now() - S.t0)}`;
+  $("rackLbl").textContent = `Rack ${S.rack} · ⏱ ${fmtTime(Date.now() - S.t0)}`;
 }
 
 function badgesHTML(side){
   const sc = side === "p1" ? S.s1 : S.s2;
-  const nm = side === "p1" ? S.n1 : S.n2;
   let h = "";
-  if(S.breaker === side) h += `<span class="badge brk">🎱 開球</span>`;
-  if(sc === S.raceTo - 1 && S.raceTo > 1) h += `<span class="badge hill">HILL 聽牌</span>`;
-  else if(sc < S.raceTo - 1) h += `<span class="badge need">還差 ${S.raceTo - sc} 盤</span>`;
+  if(S.breaker === side) h += `<span class="badge brk">🎱 Break</span>`;
+  if(sc === S.raceTo - 1 && S.raceTo > 1) h += `<span class="badge hill">HILL</span>`;
+  else if(sc < S.raceTo - 1) h += `<span class="badge need">${S.raceTo - sc} to go</span>`;
   return h;
 }
 
@@ -331,9 +336,9 @@ function render(){
 
 function showWin(side){
   const nm = side === "p1" ? S.n1 : S.n2;
-  $("winName").textContent = `${nm} 獲勝！`;
+  $("winName").textContent = `${nm} wins!`;
   $("winScore").textContent = `${S.n1} ${S.s1} – ${S.s2} ${S.n2} · Race to ${S.raceTo}`;
-  $("winTime").textContent = `用時 ${fmtTime(Date.now() - S.t0)} · 共 ${S.rack} 盤`;
+  $("winTime").textContent = `Time ${fmtTime(Date.now() - S.t0)} · ${S.rack} racks`;
   $("winOverlay").classList.remove("hidden");
 }
 
@@ -342,13 +347,13 @@ $("add2").onclick = () => score("p2");
 $("btnUndo").onclick = undo;
 $("btnReset").onclick = resetRacks;
 $("btnSwap").onclick = swapSides;
-$("btnNew").onclick = () => { if(confirm("結束這場比賽、回主畫面？")) showSetup(); };
+$("btnNew").onclick = () => { if(confirm("End this match and go back to setup?")) showSetup(); };
 $("btnHome").onclick = () => showSetup();
 $("btnRematch").onclick = resetRacks;
 $("btnWinUndo").onclick = undo;
 $("btnWinNew").onclick = showSetup;
 
-// 避免 iOS 雙擊縮放
+// prevent iOS double-tap zoom
 document.addEventListener("dblclick", e => e.preventDefault(), { passive:false });
 </script>
 </body>
